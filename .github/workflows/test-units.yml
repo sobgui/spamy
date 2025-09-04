@@ -1,0 +1,116 @@
+name: Test Units
+
+on:
+  push:
+    branches: [ main, dev ]
+#   pull_request:
+#     branches: [ main, dev ]
+#   workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+        
+    - name: Create virtual environment
+      run: |
+        python -m venv venv
+        echo "VIRTUAL_ENV=$GITHUB_WORKSPACE/venv" >> $GITHUB_ENV
+        echo "$GITHUB_WORKSPACE/venv/bin" >> $GITHUB_PATH
+        
+    - name: Install dependencies
+      run: |
+        . venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+        
+    - name: Train the model
+      run: |
+        . venv/bin/activate
+        python src/train.py
+        
+    - name: Verify model files exist
+      run: |
+        echo "Checking if model files were created..."
+        if [ -f "models/spam_model.pkl" ]; then
+          echo "✅ spam_model.pkl exists"
+        else
+          echo "❌ spam_model.pkl not found"
+          exit 1
+        fi
+        
+        if [ -f "models/vectorizer.pkl" ]; then
+          echo "✅ vectorizer.pkl exists"
+        else
+          echo "❌ vectorizer.pkl not found"
+          exit 1
+        fi
+        
+        echo "✅ All model files created successfully"
+        
+    - name: Run unit tests
+      run: |
+        . venv/bin/activate
+        pytest test/units/ -v
+        
+    - name: Run performance tests
+      run: |
+        . venv/bin/activate
+        pytest test/performs/ -v
+        
+    - name: Test model loading
+      run: |
+        . venv/bin/activate
+        python -c "
+        import joblib
+        import os
+        
+        # Test loading the model
+        model = joblib.load('models/spam_model.pkl')
+        vectorizer = joblib.load('models/vectorizer.pkl')
+        
+        # Test prediction
+        test_message = 'Free money! Click here now!'
+        message_vectorized = vectorizer.transform([test_message])
+        prediction = model.predict(message_vectorized)[0]
+        probability = model.predict_proba(message_vectorized)[0]
+        
+        print(f'Test prediction: {prediction}')
+        print(f'Test probability: {probability}')
+        print('✅ Model loading and prediction test passed')
+        "
+        
+    - name: Clean up model files
+      run: |
+        echo "Cleaning up model files..."
+        rm -rf models/
+        echo "✅ Model files cleaned up"
+        
+    - name: Verify cleanup
+      run: |
+        if [ ! -d "models" ]; then
+          echo "✅ Models directory successfully removed"
+        else
+          echo "❌ Models directory still exists"
+          exit 1
+        fi
+        
+    - name: Test summary
+      run: |
+        echo "🎉 All tests completed successfully!"
+        echo "✅ Virtual environment created"
+        echo "✅ Dependencies installed"
+        echo "✅ Model trained"
+        echo "✅ Model files verified"
+        echo "✅ Unit tests passed"
+        echo "✅ Performance tests passed"
+        echo "✅ Model loading test passed"
+        echo "✅ Cleanup completed"
