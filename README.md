@@ -57,7 +57,7 @@ spamy/
 ### 1. Clone and Navigate
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/sobgui/spamy.git
 cd spamy
 ```
 
@@ -74,7 +74,16 @@ git commit -m "Add versioned dataset with DVC"
 
 ```bash
 make venv
+
+```
+
+Install dependecies (Windows)
+```bash
 make install_requirements
+```
+Install dependecies (Mac & Linux)
+```bash
+make install_requirements_x
 ```
 
 ### 4. Train the Model
@@ -111,7 +120,8 @@ make jupyter         # Analytics notebook
 | Command                       | Description                       |
 | ----------------------------- | --------------------------------- |
 | `make venv`                 | Create Python virtual environment |
-| `make install_requirements` | Install all dependencies          |
+| `make install_requirements` | Install all dependencies for Windows         |
+| `make install_requirements_x` | Install all dependencies for Linux & mac          |
 | `make train`                | Train the spam detection model    |
 | `make predict`              | Run prediction script             |
 | `make test_units`           | Run unit tests                    |

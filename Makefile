@@ -6,6 +6,11 @@ install_requirements:
 	pip install -r requirements.txt
 	deactivate
 
+install_requirements_x:
+	./venv/lib/activate
+	pip install -r requirements.txt
+	deactivate
+
 train:
 	.\venv\Scripts\activate
 	python src/train.py
